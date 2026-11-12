@@ -188,13 +188,17 @@ python build.py          # 打包完成后会自动运行 --selftest，失败即
 ```
 
 Windows 上也可以直接双击 `build_exe.bat`：它会自动创建独立的干净构建环境 `.build-venv`。
-`build.py` 顺手处理了两个打包陷阱：
+`build.py` 顺手处理了几个打包陷阱：
 
 - 自动补设 `TCL_LIBRARY` / `TK_LIBRARY`。否则 PyInstaller 会判定「tkinter installation is broken」
   并**主动排除整个 tkinter**，打出一个 `ModuleNotFoundError` 的坏 exe（加 `--paths` 也救不回来）。
 - 把上次产物改名保留（`*_prev_时间戳`），而不是让 PyInstaller 递归删除整个目录。
 - `--collect-data zhconv`：`zhcdict.json` 是**运行时读取**的词典，漏收时模块能 import、
   一转换就 `FileNotFoundError`。自检里的中文规范化实测会拦下这种坏 exe。
+- CI 的 Windows runner 通过 `pwsh` 启动时 stdout 是 **cp1252**，脚本里任何中文 `print`
+  都会抛 `UnicodeEncodeError`（本机中文 UTF-8 环境不会暴露）。`build.py` 开头强制把
+  stdout/stderr 重配成 UTF-8，工作流也设了 `PYTHONIOENCODING=utf-8` / `PYTHONUTF8=1`
+  覆盖 PyInstaller 子进程和冻结后的 exe 自检。
 
 混用精简版 / 嵌入式 Python 仍可能出问题，打包建议一律用官方 CPython。
 

@@ -12,6 +12,15 @@ import os
 import sys
 import subprocess
 
+# GitHub Actions 的 Windows runner 通过 pwsh 启动时，Python 的 stdout 默认
+# 是 cp1252，打印中文会直接抛 UnicodeEncodeError 让构建在打包前就失败。
+# 强制 UTF-8 并容忍无法编码的字符；--noconsole 冻结环境里 stdout 可能为 None。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 BASE = os.path.dirname(os.path.abspath(__file__))
 NAME = "SubtitleGenerator"          # 用 ASCII 名，避免 CI / 压缩环节出现编码问题
 

@@ -12,6 +12,11 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      # Windows runner 的 stdout 默认是 cp1252，中文日志会让 Python 抛
+      # UnicodeEncodeError。子进程（PyInstaller、exe 自检）也会继承这里。
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
 
     steps:
       - name: Checkout
