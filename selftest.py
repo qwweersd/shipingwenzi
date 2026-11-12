@@ -15,6 +15,7 @@ import sys
 MODULES = (
     "tkinter", "tkinterdnd2", "faster_whisper", "ctranslate2",
     "av", "onnxruntime", "tokenizers", "huggingface_hub", "numpy",
+    "zhconv", "zh_text",
 )
 
 
@@ -57,6 +58,15 @@ def run():
         checks["tcl_init"] = "Tcl " + str(tkinter.Tcl().call("info", "patchlevel"))
     except Exception as e:
         checks["tcl_init"] = f"FAIL: {type(e).__name__}: {e}"
+
+    # 中文后处理不只要能 import，还要真的把繁体/半角标点改对
+    try:
+        import zh_text
+        demo = zh_text.normalize_zh("接下來測試,現在開始")
+        expected = "接下来测试，现在开始"
+        checks["zh_normalize"] = demo if demo == expected else f"FAIL: got {demo!r}"
+    except Exception as e:
+        checks["zh_normalize"] = f"FAIL: {type(e).__name__}: {e}"
 
     ok = not any(str(v).startswith("FAIL") for v in checks.values())
     result = {

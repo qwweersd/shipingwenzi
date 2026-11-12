@@ -51,7 +51,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo  [2/3] Installing faster-whisper + tkinterdnd2 ...
+echo  [2/3] Installing dependencies (faster-whisper / tkinterdnd2 / zhconv) ...
 echo         This may take 1-5 minutes, please wait.
 echo.
 ".venv\Scripts\python.exe" -m pip install --timeout 10 --retries 0 -r requirements.txt

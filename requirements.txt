@@ -5,6 +5,7 @@
 
 faster-whisper>=1.1
 tkinterdnd2>=0.4
+zhconv>=1.4.3            # 中文输出规范化：繁体转简体（纯 Python，约 0.5 MB）
 
 # 说明: PyAV (av) 由 faster-whisper 自动安装，不在此锁定版本。
 # PyAV 17+ 移除 metadata_errors 参数的兼容问题，已在 subtitle_app.py 中自动适配。

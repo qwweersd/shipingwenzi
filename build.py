@@ -15,12 +15,16 @@ import subprocess
 BASE = os.path.dirname(os.path.abspath(__file__))
 NAME = "SubtitleGenerator"          # 用 ASCII 名，避免 CI / 压缩环节出现编码问题
 
-COLLECT_DATA = ["faster_whisper", "tkinterdnd2", "ctranslate2", "onnxruntime"]
+# zhconv 的词典 zhcdict.json 是运行时读取的数据文件，不 collect 会导致
+# 模块能 import、转换却报 FileNotFoundError（冒烟自检会拦下这种坏 exe）。
+COLLECT_DATA = ["faster_whisper", "tkinterdnd2", "ctranslate2", "onnxruntime",
+                "zhconv"]
 COLLECT_BINARIES = ["ctranslate2", "av", "onnxruntime", "tokenizers"]
 COLLECT_SUBMODULES = ["huggingface_hub"]
 HIDDEN_IMPORTS = [
     "faster_whisper", "ctranslate2", "av", "onnxruntime",
     "tokenizers", "huggingface_hub", "tkinterdnd2", "tkinter", "selftest",
+    "zhconv", "zh_text",
 ]
 COPY_METADATA = ["faster_whisper", "huggingface_hub", "tokenizers",
                  "onnxruntime", "ctranslate2", "av"]

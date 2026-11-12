@@ -24,6 +24,8 @@ import traceback
 import subprocess
 from datetime import datetime
 
+import zh_text  # 中文输出后处理：繁转简 / 全角标点
+
 # PyInstaller 冻结后 __file__ 指向临时解包目录，模型缓存会随每次启动丢失，
 # 因此打包运行时一律以 exe 所在目录为基准。
 if getattr(sys, "frozen", False):
@@ -147,7 +149,7 @@ class SubtitleApp:
     def __init__(self, root):
         self.root = root
         self.root.title("本地视频字幕生成器  ·  MP4 → SRT / VTT / TXT")
-        self.root.geometry("860x760")
+        self.root.geometry("860x790")
         self.root.minsize(760, 680)
 
         self.msg_queue = queue.Queue()
@@ -244,6 +246,7 @@ class SubtitleApp:
 
         self.vad_var = tk.BooleanVar(value=True)
         self.show_text_var = tk.BooleanVar(value=True)
+        self.zh_norm_var = tk.BooleanVar(value=True)
         opt = ttk.Frame(sf)
         opt.grid(row=3, column=0, columnspan=4, sticky=tk.W, pady=(2, 4))
         ttk.Checkbutton(opt, text="过滤静音片段（推荐，减少幻听）", variable=self.vad_var).pack(side=tk.LEFT)
@@ -254,15 +257,22 @@ class SubtitleApp:
                      values=["国内镜像（推荐）", "官方源（海外）"],
                      state="readonly", width=16).pack(side=tk.LEFT, padx=4)
 
+        opt2 = ttk.Frame(sf)
+        opt2.grid(row=4, column=0, columnspan=4, sticky=tk.W, pady=(2, 2))
+        ttk.Checkbutton(opt2, text="中文输出规范化（繁体→简体、全角标点，推荐）",
+                        variable=self.zh_norm_var).pack(side=tk.LEFT)
+        ttk.Label(opt2, text="仅对识别为中文的字幕生效",
+                  style="Sub.TLabel").pack(side=tk.LEFT, padx=(10, 0))
+
         out = ttk.Frame(sf)
-        out.grid(row=4, column=0, columnspan=4, sticky=tk.EW, pady=(4, 0))
+        out.grid(row=5, column=0, columnspan=4, sticky=tk.EW, pady=(4, 0))
         ttk.Label(out, text="输出目录：").pack(side=tk.LEFT)
         self.outdir_var = tk.StringVar(value="")
         self.outdir_entry = ttk.Entry(out, textvariable=self.outdir_var)
         self.outdir_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
         ttk.Button(out, text="浏览…", command=self.choose_outdir).pack(side=tk.LEFT)
         ttk.Label(sf, text="（留空 = 字幕保存在视频同目录；批量时建议指定统一目录）",
-                  style="Sub.TLabel").grid(row=5, column=0, columnspan=4, sticky=tk.W)
+                  style="Sub.TLabel").grid(row=6, column=0, columnspan=4, sticky=tk.W)
 
         # ---------- 执行 ----------
         af = ttk.Frame(outer)
@@ -500,6 +510,12 @@ class SubtitleApp:
         duration = float(getattr(info, "duration", 0) or 0)
         self._log(f"   检测语言：{detected}　时长：{duration:.1f} 秒")
 
+        # Whisper 中文输出常混入繁体、半角标点，这里按检测到的语言自动规范化
+        zh_norm = self.zh_norm_var.get() and detected == "zh"
+        zh_conv_at_start = zh_text.has_full_converter()
+        if zh_norm and not zh_conv_at_start:
+            self._log("   ⚠ 未安装 zhconv：仅能规范标点，重跑「安装依赖.bat」可启用繁体转简体")
+
         srt_lines, vtt_lines, txt_lines = [], ["WEBVTT", ""], []
         count = 0
         last_pct = -1
@@ -510,6 +526,8 @@ class SubtitleApp:
             text = (seg.text or "").strip()
             if not text:
                 continue
+            if zh_norm:
+                text = zh_text.normalize_zh(text)
             count += 1
             start, end = float(seg.start), float(seg.end)
             srt_lines.append(f"{count}\n{fmt_time(start)} --> {fmt_time(end)}\n{text}\n")
@@ -523,6 +541,9 @@ class SubtitleApp:
                 if pct != last_pct:
                     self._emit("progress", pct)
                     last_pct = pct
+
+        if zh_norm and zh_conv_at_start and not zh_text.has_full_converter():
+            self._log("   ⚠ 繁简词典不可用，已跳过繁转简（标点规范化仍生效）")
 
         if count == 0:
             self._log("   ⚠ 未识别到语音。请确认视频含音轨，或换更大的模型。")
