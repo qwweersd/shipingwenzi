@@ -1,0 +1,17 @@
+# Windows 批处理必须用 CRLF，否则在部分 cmd.exe 环境会解析异常。
+# 仓库内统一存 LF，检出到 Windows 工作区时自动转 CRLF。
+*.bat text eol=crlf
+
+# 其余文本统一 LF，避免跨平台产生无意义的整文件 diff
+*.py   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+LICENSE      text eol=lf
+.gitignore   text eol=lf
+.gitattributes text eol=lf
+
+# 二进制文件不做任何换行转换
+*.png binary
+*.ico binary

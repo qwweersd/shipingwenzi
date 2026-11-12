@@ -1,0 +1,10 @@
+# 本地视频字幕生成器 - Python 依赖
+# Windows: 直接运行 install.bat（会自动处理镜像）
+# macOS / Linux: python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+# 注意: 需系统 Python 自带 tkinter (macOS 用 python.org 安装包 / brew python-tk)
+
+faster-whisper>=1.1
+tkinterdnd2>=0.4
+
+# 说明: PyAV (av) 由 faster-whisper 自动安装，不在此锁定版本。
+# PyAV 17+ 移除 metadata_errors 参数的兼容问题，已在 subtitle_app.py 中自动适配。
