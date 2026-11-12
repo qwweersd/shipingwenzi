@@ -140,12 +140,22 @@ Whisper 的中文结果常混进繁体、标点也一律是半角 `,`。勾选�
 
 ### 推代码
 
-本工作区的仓库已经 `git init` 并完成首次提交（分支 `main`），关联远程后推送即可：
+先在 github.com 点 **New repository** 建一个**空仓库**：填名字、选 Public / Private，
+**不要勾选** Add a README、.gitignore、license —— 勾了会生成初始提交，导致推送被拒。
+建好后复制仓库的 HTTPS 地址。
+
+本工作区的仓库已经 `git init` 并完成提交（分支 `main`），关联远程后推送即可：
 
 ```bash
 git remote add origin https://github.com/<你的用户名>/<仓库名>.git
 git push -u origin main
 ```
+
+Windows 上也可以直接双击 `推送到GitHub.bat`，粘贴仓库地址就完成上面两步。
+
+首次推送会弹出 Git Credential Manager 的浏览器登录窗口，按提示登录即可；
+若没有弹窗，改用 Personal Access Token（Settings → Developer settings →
+Personal access tokens，勾选 `repo` 权限）当密码输入。
 
 > 首次提交用了中性作者 `Subtitle Generator contributors <contributors@localhost>`。
 > 想改成自己的 GitHub 身份：`git commit --amend --author="你的名字 <你的邮箱>" --no-edit`
